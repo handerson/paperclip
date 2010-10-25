@@ -332,7 +332,12 @@ module Paperclip
       # Returns representation of the data of the file assigned to the given
       # style, in the format most representative of the current storage.
       def to_file style = default_style
-        @queued_for_write[style] || cloudfiles_container.create_object(path(style))
+        return @queued_for_write[style] if @queued_for_write[style]
+        
+        file = Tempfile.new(path(style), :encoding => 'ascii-8bit')
+        file.write(cloudfiles_container.create_object(path(style)).data)
+        file.rewind
+        return file
       end
       alias_method :to_io, :to_file
 
